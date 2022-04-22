@@ -12,15 +12,6 @@ const data1 = [
   { name: 'Brandon', score: 30}
 ];
 
-const data2 = [
-  { name: 'Simon', score: 80},
-  { name: 'Mary', score: 100},
-  { name: 'John', score: 90},
-  { name: 'Brandon', score: 80},
-  { name: 'Young', score: 20},
-  { name: 'Jan', score: 50}
-];
-
 const startingDate = moment('2022-04-01')
 
 function formatDate(d, i, period) {
@@ -31,8 +22,8 @@ function addDate(i) {
   return new Date(2022, 1, i)
 }
 
-const width = 800;
-const height = 400;
+const width = 300;
+const height = 300;
 const margin = { top: 50, bottom: 50, left: 50, right: 50 }
 
 const svg = d3.select('#canvas')
@@ -56,6 +47,19 @@ const currentYAxis = svg.append('g')
 const yAxisGenerator = d3.axisLeft(y)
   .ticks(4)
   .tickFormat(d => `${d}%`)
+
+ const tooltip = d3
+  .select('body')
+  .append('div')
+  .attr('class', 'd3-tooltip')
+  .style('position', 'absolute')
+  .style('z-index', '10')
+  .style('visibility', 'hidden')
+  .style('padding', '10px')
+  .style('background', 'rgba(0,0,0,0.6)')
+  .style('border-radius', '4px')
+  .style('color', '#fff')
+  .text('a simple tooltip');
 
 function xAxis(g) {
   g.attr('transform', `translate(0, ${height - margin.bottom})`)
@@ -82,17 +86,32 @@ function update(data) {
     .duration(1000)
     .call(yAxis)
 
-  var u = svg.selectAll('rect')
+  svg.selectAll('rect')
     .data(data)
-    
-  u.join('rect')
-    .transition()
-    .duration(1000)
-      .attr('x', d => x(d.name))
-      .attr('y', d => y(d.score))
-      .attr('width', x.bandwidth())
-      .attr('fill', 'royal-blue')
-      .attr('height', d => (height - margin.bottom) - y(d.score))
+    .enter()
+    .append('rect')
+      .attr('fill', 'red')
+        .attr('x', d => x(d.name))
+        .attr('y', d => y(d.score))
+        .attr('width', x.bandwidth())
+        .attr('height', d => (height - margin.bottom) - y(d.score))
+        .on('mouseover', function(event, d) {
+          tooltip.transition()
+            .duration(200)
+            .style('opacity', .9);
+            tooltip.html(d.score)
+            .style('left', (event.pageX) + 'px')
+            .style('top', (event.pageY - 28) + 'px')
+        })
+        .on('mousemove', function() {
+          tooltip.style('top', d3.event.pageY - 10 + 'px')
+            .style('left', d3.event.pageX + 10 + 'px')
+        })
+        .on('mouseout', (d) => {
+          tooltip.transition()
+            .duration(200)
+            .style('opacity', 0)
+        })
 
 }
 
